@@ -1,3 +1,4 @@
+from re import search
 from time import perf_counter
 from pathlib import Path
 from multiprocessing import Process
@@ -13,7 +14,7 @@ from utilities import colorprint, worksheets_dimensions
 def translate_xls(paths: set[Path], translator: GoogleTranslator) -> None:
 
     def translate(container):
-        if type(container.value) == str and not container.value.isascii() and container.data_type != "f":
+        if type(container.value) == str and search("[\u4E00-\u9FFF]", container.value) and container.data_type != "f":
             try:
                 translation = translator.translate(container.value)
                 if type(translation) == str:
@@ -40,7 +41,7 @@ def translate_xls(paths: set[Path], translator: GoogleTranslator) -> None:
 def translate_doc(paths: set[Path], translator: GoogleTranslator) -> None:
 
     def translate(container):
-        if type(container.text) == str and not container.text.isascii():
+        if type(container.text) == str and search("[\u4E00-\u9FFF]", container.text):
             try:
                 translation = translator.translate(container.text)
                 if type(translation) == str:
@@ -71,7 +72,7 @@ def translate_doc(paths: set[Path], translator: GoogleTranslator) -> None:
 def translate_ppt(paths: set[Path], translator: GoogleTranslator) -> None:
 
     def translate(container):
-        if type(container.text) == str and not container.text.isascii():
+        if type(container.text) == str and search("[\u4E00-\u9FFF]", container.text):
             try:
                 translation = translator.translate(container.text)
                 if type(translation) == str:
