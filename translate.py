@@ -65,6 +65,12 @@ def translate_doc(paths: set[Path], translator: GoogleTranslator) -> None:
                     for paragraph in cell.paragraphs:
                         for run in paragraph.runs:
                             translate(run)
+                    for subtable in cell.tables:
+                        for subrow in subtable.rows:
+                            for subcell in subrow.cells:
+                                for subparagraph in subcell.paragraphs:
+                                    for subrun in subparagraph.runs:
+                                        translate(subrun)
         document.save(str(path))
         colorprint("g", "translate_doc", index_path, len(paths), int(perf_counter() - time_cur), int(perf_counter() - time_beg), path.name, "translated")
 
