@@ -9,11 +9,9 @@ from outdate import outdate_mso
 
 if __name__ == "__main__":
 
-    file_index = "*.xlsx"
-
     time_beginning = perf_counter()
 
-    move_mso(file_index)
+    move_mso()
     update_mso()
     translate_mso()
     outdate_mso()
