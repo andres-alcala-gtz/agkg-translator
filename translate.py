@@ -56,10 +56,15 @@ def translate_doc(paths: set[Path], translator: GoogleTranslator) -> None:
         time_cur = perf_counter()
         colorprint("c", "translate_doc", index_path, len(paths), int(perf_counter() - time_cur), int(perf_counter() - time_beg), path.name, "translating")
         document = Document(str(path))
-        for paragraph in document.paragraphs:
+        paragraphs = document.paragraphs
+        tables = document.tables
+        for section in document.sections:
+            paragraphs += section.header.paragraphs + section.footer.paragraphs
+            tables += section.header.tables + section.footer.tables
+        for paragraph in paragraphs:
             for run in paragraph.runs:
                 translate(run)
-        for table in document.tables:
+        for table in tables:
             for row in table.rows:
                 for cell in row.cells:
                     for paragraph in cell.paragraphs:
