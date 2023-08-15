@@ -1,6 +1,7 @@
 from re import search
 from time import perf_counter
 from pathlib import Path
+from functools import cache
 from multiprocessing import Process
 from deep_translator import GoogleTranslator
 
@@ -11,12 +12,17 @@ from openpyxl import load_workbook as Workbook
 from utilities import colorprint, worksheets_dimensions
 
 
-def translate_xls(paths: set[Path], translator: GoogleTranslator) -> None:
+@cache
+def translate_str(text: str) -> str:
+    return GoogleTranslator(source="auto", target="en").translate(text)
+
+
+def translate_xls(paths: set[Path]) -> None:
 
     def translate(container):
         if type(container.value) == str and search("[\u4E00-\u9FFF]", container.value) and container.data_type != "f":
             try:
-                translation = translator.translate(container.value)
+                translation = translate_str(container.value)
                 if type(translation) == str:
                     container.value = translation
             except Exception as exception:
@@ -38,12 +44,12 @@ def translate_xls(paths: set[Path], translator: GoogleTranslator) -> None:
         colorprint("g", "translate_xls", index_path, len(paths), int(perf_counter() - time_cur), int(perf_counter() - time_beg), path.name, "translated")
 
 
-def translate_doc(paths: set[Path], translator: GoogleTranslator) -> None:
+def translate_doc(paths: set[Path]) -> None:
 
     def translate(container):
         if type(container.text) == str and search("[\u4E00-\u9FFF]", container.text):
             try:
-                translation = translator.translate(container.text)
+                translation = translate_str(container.text)
                 if type(translation) == str:
                     container.text = translation
             except Exception as exception:
@@ -80,12 +86,12 @@ def translate_doc(paths: set[Path], translator: GoogleTranslator) -> None:
         colorprint("g", "translate_doc", index_path, len(paths), int(perf_counter() - time_cur), int(perf_counter() - time_beg), path.name, "translated")
 
 
-def translate_ppt(paths: set[Path], translator: GoogleTranslator) -> None:
+def translate_ppt(paths: set[Path]) -> None:
 
     def translate(container):
         if type(container.text) == str and search("[\u4E00-\u9FFF]", container.text):
             try:
-                translation = translator.translate(container.text)
+                translation = translate_str(container.text)
                 if type(translation) == str:
                     container.text = translation
             except Exception as exception:
@@ -114,15 +120,15 @@ def translate_ppt(paths: set[Path], translator: GoogleTranslator) -> None:
         colorprint("g", "translate_ppt", index_path, len(paths), int(perf_counter() - time_cur), int(perf_counter() - time_beg), path.name, "translated")
 
 
-def translate_mso(directory: Path = Path("output"), translator: GoogleTranslator = GoogleTranslator()) -> None:
+def translate_mso(directory: Path = Path("output")) -> None:
 
     paths_xls = {path for path in directory.rglob("*") if path.suffix == ".xlsx" and path.stat().st_file_attributes != 34}
     paths_doc = {path for path in directory.rglob("*") if path.suffix == ".docx" and path.stat().st_file_attributes != 34}
     paths_ppt = {path for path in directory.rglob("*") if path.suffix == ".pptx" and path.stat().st_file_attributes != 34}
 
-    process_xls = Process(target=translate_xls, args=(paths_xls, translator))
-    process_doc = Process(target=translate_doc, args=(paths_doc, translator))
-    process_ppt = Process(target=translate_ppt, args=(paths_ppt, translator))
+    process_xls = Process(target=translate_xls, args=[paths_xls])
+    process_doc = Process(target=translate_doc, args=[paths_doc])
+    process_ppt = Process(target=translate_ppt, args=[paths_ppt])
 
     process_xls.start()
     process_doc.start()
