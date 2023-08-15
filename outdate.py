@@ -59,7 +59,7 @@ def outdate_ppt(paths: set[Path]) -> None:
     app.Quit()
 
 
-def outdate_mso(directory: Path = Path("output")) -> None:
+def outdate(directory: Path = Path("output")) -> None:
 
     paths_xls = {path.absolute() for path in directory.rglob("*") if path.suffix == ".xlsx" and path.stat().st_file_attributes != 34}
     paths_doc = {path.absolute() for path in directory.rglob("*") if path.suffix == ".docx" and path.stat().st_file_attributes != 34}

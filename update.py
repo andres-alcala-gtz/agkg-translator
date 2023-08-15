@@ -68,7 +68,7 @@ def update_ppt(paths: set[Path]) -> None:
     app.Quit()
 
 
-def update_mso(directory: Path = Path("output")) -> None:
+def update(directory: Path = Path("output")) -> None:
 
     paths_xls = {path.absolute() for path in directory.rglob("*") if path.suffix in (".xlsx", ".xls") and path.stat().st_file_attributes != 34}
     paths_doc = {path.absolute() for path in directory.rglob("*") if path.suffix in (".docx", ".doc") and path.stat().st_file_attributes != 34}

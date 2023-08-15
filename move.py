@@ -6,7 +6,7 @@ from openpyxl import load_workbook
 from utilities import colorprint, worksheets_dimensions
 
 
-def move_mso(directory_src: Path = Path("input"), directory_dst: Path = Path("output")) -> None:
+def move(directory_src: Path = Path("input"), directory_dst: Path = Path("output")) -> None:
 
     path_idx = Path([path.name for path in directory_src.glob("*") if path.suffix == ".xlsx" and path.stat().st_file_attributes != 34][0])
     paths = {path_idx}

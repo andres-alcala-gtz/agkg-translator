@@ -19,7 +19,7 @@ def translate_str(text: str) -> str:
 
 def translate_xls(paths: set[Path]) -> None:
 
-    def translate(container):
+    def _translate(container):
         if type(container.value) == str and search("[\u4E00-\u9FFF]", container.value) and container.data_type != "f":
             try:
                 translation = translate_str(container.value)
@@ -39,14 +39,14 @@ def translate_xls(paths: set[Path]) -> None:
             for row in range(1, rows + 2):
                 for col in range(1, cols + 1):
                     cell = workbook[sheetname].cell(row, col)
-                    translate(cell)
+                    _translate(cell)
         workbook.save(str(path))
         colorprint("g", "translate_xls", index_path, len(paths), int(perf_counter() - time_cur), int(perf_counter() - time_beg), path.name, "translated")
 
 
 def translate_doc(paths: set[Path]) -> None:
 
-    def translate(container):
+    def _translate(container):
         if type(container.text) == str and search("[\u4E00-\u9FFF]", container.text):
             try:
                 translation = translate_str(container.text)
@@ -69,26 +69,26 @@ def translate_doc(paths: set[Path]) -> None:
             tables += section.header.tables + section.footer.tables
         for paragraph in paragraphs:
             for run in paragraph.runs:
-                translate(run)
+                _translate(run)
         for table in tables:
             for row in table.rows:
                 for cell in row.cells:
                     for paragraph in cell.paragraphs:
                         for run in paragraph.runs:
-                            translate(run)
+                            _translate(run)
                     for subtable in cell.tables:
                         for subrow in subtable.rows:
                             for subcell in subrow.cells:
                                 for subparagraph in subcell.paragraphs:
                                     for subrun in subparagraph.runs:
-                                        translate(subrun)
+                                        _translate(subrun)
         document.save(str(path))
         colorprint("g", "translate_doc", index_path, len(paths), int(perf_counter() - time_cur), int(perf_counter() - time_beg), path.name, "translated")
 
 
 def translate_ppt(paths: set[Path]) -> None:
 
-    def translate(container):
+    def _translate(container):
         if type(container.text) == str and search("[\u4E00-\u9FFF]", container.text):
             try:
                 translation = translate_str(container.text)
@@ -109,18 +109,18 @@ def translate_ppt(paths: set[Path]) -> None:
                 if shape.has_text_frame:
                     for paragraph in shape.text_frame.paragraphs:
                         for run in paragraph.runs:
-                            translate(run)
+                            _translate(run)
                 if shape.has_table:
                     for row in shape.table.rows:
                         for cell in row.cells:
                             for paragraph in cell.text_frame.paragraphs:
                                 for run in paragraph.runs:
-                                    translate(run)
+                                    _translate(run)
         presentation.save(str(path))
         colorprint("g", "translate_ppt", index_path, len(paths), int(perf_counter() - time_cur), int(perf_counter() - time_beg), path.name, "translated")
 
 
-def translate_mso(directory: Path = Path("output")) -> None:
+def translate(directory: Path = Path("output")) -> None:
 
     paths_xls = {path for path in directory.rglob("*") if path.suffix == ".xlsx" and path.stat().st_file_attributes != 34}
     paths_doc = {path for path in directory.rglob("*") if path.suffix == ".docx" and path.stat().st_file_attributes != 34}
