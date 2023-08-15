@@ -116,9 +116,9 @@ def translate_ppt(paths: set[Path], translator: GoogleTranslator) -> None:
 
 def translate_mso(directory: Path = Path("output"), translator: GoogleTranslator = GoogleTranslator()) -> None:
 
-    paths_xls = {path for path in directory.rglob("*") if path.suffix == ".xlsx"}
-    paths_doc = {path for path in directory.rglob("*") if path.suffix == ".docx"}
-    paths_ppt = {path for path in directory.rglob("*") if path.suffix == ".pptx"}
+    paths_xls = {path for path in directory.rglob("*") if path.suffix == ".xlsx" and path.stat().st_file_attributes != 34}
+    paths_doc = {path for path in directory.rglob("*") if path.suffix == ".docx" and path.stat().st_file_attributes != 34}
+    paths_ppt = {path for path in directory.rglob("*") if path.suffix == ".pptx" and path.stat().st_file_attributes != 34}
 
     process_xls = Process(target=translate_xls, args=(paths_xls, translator))
     process_doc = Process(target=translate_doc, args=(paths_doc, translator))

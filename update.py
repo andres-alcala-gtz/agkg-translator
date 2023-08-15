@@ -70,9 +70,9 @@ def update_ppt(paths: set[Path]) -> None:
 
 def update_mso(directory: Path = Path("output")) -> None:
 
-    paths_xls = {path.absolute() for path in directory.rglob("*") if path.suffix in (".xlsx", ".xls")}
-    paths_doc = {path.absolute() for path in directory.rglob("*") if path.suffix in (".docx", ".doc")}
-    paths_ppt = {path.absolute() for path in directory.rglob("*") if path.suffix in (".pptx", ".ppt")}
+    paths_xls = {path.absolute() for path in directory.rglob("*") if path.suffix in (".xlsx", ".xls") and path.stat().st_file_attributes != 34}
+    paths_doc = {path.absolute() for path in directory.rglob("*") if path.suffix in (".docx", ".doc") and path.stat().st_file_attributes != 34}
+    paths_ppt = {path.absolute() for path in directory.rglob("*") if path.suffix in (".pptx", ".ppt") and path.stat().st_file_attributes != 34}
 
     update_xls(paths_xls)
     update_doc(paths_doc)
