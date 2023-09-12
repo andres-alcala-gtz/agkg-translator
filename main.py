@@ -1,15 +1,15 @@
-from copy import deepcopy
-from time import perf_counter
+import time
+import copy
 
-from move import move
-from translate import translate
-from utilities import Watch
+import move
+import translate
+import utilities
 
 
 if __name__ == "__main__":
 
-    watch = Watch(time_beginning=perf_counter())
+    watch = utilities.Watch(time_beginning=time.perf_counter())
 
-    move(watch=deepcopy(watch))
-    translate(watch=deepcopy(watch))
-    translate(watch=deepcopy(watch))
+    move.move(watch=copy.deepcopy(watch))
+    translate.translate(watch=copy.deepcopy(watch))
+    translate.translate(watch=copy.deepcopy(watch))
