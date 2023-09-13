@@ -38,7 +38,7 @@ def move_ppt(path_source: str, path_destination: str) -> None:
     app.Quit()
 
 
-def move(directory_src: pathlib.Path = pathlib.Path("input"), directory_dst: pathlib.Path = pathlib.Path("output"), watch: utilities.Watch = utilities.Watch()) -> None:
+def move(directory_src: pathlib.Path, directory_dst: pathlib.Path, watch: utilities.Watch) -> None:
 
     suffix_to_function_suffix = {".xlsx": (move_xls, ".xlsx"), ".xls": (move_xls, ".xlsx"), ".docx": (move_doc, ".docx"), ".doc": (move_doc, ".docx"), ".pptx": (move_ppt, ".pptx"), ".ppt": (move_ppt, ".pptx")}
 

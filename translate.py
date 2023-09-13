@@ -21,7 +21,7 @@ def translate_str(text: str) -> str:
 
 def translate_xls(path: pathlib.Path, watch: utilities.Watch) -> None:
 
-    def _translate(container):
+    def _translate(container) -> None:
         if type(container.value) == str and re.search("[\u4E00-\u9FFF]", container.value) and container.data_type != "f":
             try:
                 translation = translate_str(container.value).result()
@@ -43,7 +43,7 @@ def translate_xls(path: pathlib.Path, watch: utilities.Watch) -> None:
 
 def translate_doc(path: pathlib.Path, watch: utilities.Watch) -> None:
 
-    def _translate(container):
+    def _translate(container) -> None:
         if type(container.text) == str and re.search("[\u4E00-\u9FFF]", container.text):
             try:
                 translation = translate_str(container.text).result()
@@ -80,7 +80,7 @@ def translate_doc(path: pathlib.Path, watch: utilities.Watch) -> None:
 
 def translate_ppt(path: pathlib.Path, watch: utilities.Watch) -> None:
 
-    def _translate(container):
+    def _translate(container) -> None:
         if type(container.text) == str and re.search("[\u4E00-\u9FFF]", container.text):
             try:
                 translation = translate_str(container.text).result()
@@ -121,10 +121,10 @@ def translate_mso(paths: list[pathlib.Path], watch: utilities.Watch) -> None:
         utilities.colorprint("g", path.name, "translated", copy.deepcopy(watch))
 
 
-def translate(directory: pathlib.Path = pathlib.Path("output"), watch: utilities.Watch = utilities.Watch()) -> None:
+def translate(directory_dst: pathlib.Path, processes: int, watch: utilities.Watch) -> None:
 
-    paths = [path for path in directory.rglob("*") if path.suffix in (".xlsx", ".docx", ".pptx") and path.stat().st_file_attributes != 34]
+    paths = [path for path in directory_dst.rglob("*") if path.suffix in (".xlsx", ".docx", ".pptx") and path.stat().st_file_attributes != 34]
 
-    processes = [multiprocessing.Process(target=translate_mso, args=(values, copy.deepcopy(watch))) for values in utilities.list_split(paths)]
-    for process in processes: process.start()
-    for process in processes: process.join()
+    pool = [multiprocessing.Process(target=translate_mso, args=(values, copy.deepcopy(watch))) for values in utilities.list_split(paths, processes)]
+    for process in pool: process.start()
+    for process in pool: process.join()

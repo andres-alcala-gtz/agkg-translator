@@ -7,17 +7,17 @@ import dataclasses
 
 @dataclasses.dataclass
 class Watch:
-    index_current: int = None
-    index_ending: int = None
-    time_current: float = None
-    time_beginning: float = None
+    index_current: int = 0
+    index_ending: int = 0
+    time_current: float = time.perf_counter()
+    time_beginning: float = time.perf_counter()
 
 
-def list_split(values: list, sections: int = 8) -> list:
+def list_split(values: list, sections: int) -> list[list]:
     return [list(array) for array in numpy.array_split(values, sections)]
 
 
-def worksheets_dimensions(path: str) -> dict:
+def worksheets_dimensions(path: str) -> dict[int | str, tuple[int, int]]:
     file = pandas.ExcelFile(path)
     info = dict()
     for sheet_name in file.sheet_names:
