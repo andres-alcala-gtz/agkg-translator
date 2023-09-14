@@ -2,6 +2,7 @@ import time
 import copy
 import pathlib
 import openpyxl
+import urllib.parse
 import win32com.client
 import pebble.concurrent
 
@@ -51,7 +52,7 @@ def move(directory_src: pathlib.Path, directory_dst: pathlib.Path, watch: utilit
             for col in range(1, cols + 1):
                 cell = workbook[sheetname].cell(row, col)
                 if cell.hyperlink is not None:
-                    path = pathlib.Path(cell.hyperlink.target)
+                    path = pathlib.Path(urllib.parse.unquote(cell.hyperlink.target))
                     if path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and ".." not in path.parts:
                         if path not in paths:
                             paths[path] = [cell]
