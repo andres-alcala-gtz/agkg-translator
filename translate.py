@@ -13,18 +13,26 @@ import pebble.concurrent
 import utilities
 
 
-@functools.cache
-@pebble.concurrent.process(timeout=30)
-def translate_str(text: str) -> str:
+def translate_str_vul(text: str) -> str:
     return deep_translator.GoogleTranslator(source="auto", target="en").translate(text)
 
 
-def translate_xls(path: pathlib.Path, watch: utilities.Watch) -> None:
+@pebble.concurrent.process(timeout=30)
+def translate_str_sec(text: str) -> str:
+    return deep_translator.GoogleTranslator(source="auto", target="en").translate(text)
+
+
+@functools.cache
+def translate_str(safe: bool, text: str) -> str:
+    return translate_str_vul(text) if not safe else translate_str_sec(text).result()
+
+
+def translate_xls(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> None:
 
     def _translate(container) -> None:
         if type(container.value) == str and re.search("[\u4E00-\u9FFF]", container.value) and container.data_type != "f":
             try:
-                translation = translate_str(container.value).result()
+                translation = translate_str(safe, container.value)
                 if type(translation) == str:
                     container.value = translation
             except Exception as exception:
@@ -41,12 +49,12 @@ def translate_xls(path: pathlib.Path, watch: utilities.Watch) -> None:
     workbook.save(str(path))
 
 
-def translate_doc(path: pathlib.Path, watch: utilities.Watch) -> None:
+def translate_doc(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> None:
 
     def _translate(container) -> None:
         if type(container.text) == str and re.search("[\u4E00-\u9FFF]", container.text):
             try:
-                translation = translate_str(container.text).result()
+                translation = translate_str(safe, container.text)
                 if type(translation) == str:
                     container.text = translation
             except Exception as exception:
@@ -78,12 +86,12 @@ def translate_doc(path: pathlib.Path, watch: utilities.Watch) -> None:
     document.save(str(path))
 
 
-def translate_ppt(path: pathlib.Path, watch: utilities.Watch) -> None:
+def translate_ppt(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> None:
 
     def _translate(container) -> None:
         if type(container.text) == str and re.search("[\u4E00-\u9FFF]", container.text):
             try:
-                translation = translate_str(container.text).result()
+                translation = translate_str(safe, container.text)
                 if type(translation) == str:
                     container.text = translation
             except Exception as exception:
@@ -107,7 +115,7 @@ def translate_ppt(path: pathlib.Path, watch: utilities.Watch) -> None:
     presentation.save(str(path))
 
 
-def translate_mso(paths: list[pathlib.Path], watch: utilities.Watch) -> None:
+def translate_mso(safe: bool, paths: list[pathlib.Path], watch: utilities.Watch) -> None:
 
     suffix_to_function = {".xlsx": translate_xls, ".docx": translate_doc, ".pptx": translate_ppt}
 
@@ -117,14 +125,14 @@ def translate_mso(paths: list[pathlib.Path], watch: utilities.Watch) -> None:
         watch.time_current = time.perf_counter()
         utilities.colorprint("c", path.name, "translating", copy.deepcopy(watch))
         function = suffix_to_function[path.suffix]
-        function(path, copy.deepcopy(watch))
+        function(safe, path, copy.deepcopy(watch))
         utilities.colorprint("g", path.name, "translated", copy.deepcopy(watch))
 
 
-def translate(directory_dst: pathlib.Path, processes: int, watch: utilities.Watch) -> None:
+def translate(safe: bool, directory_dst: pathlib.Path, processes: int, watch: utilities.Watch) -> None:
 
     paths = [path for path in directory_dst.rglob("*") if path.suffix in (".xlsx", ".docx", ".pptx") and path.stat().st_file_attributes != 34]
 
-    pool = [multiprocessing.Process(target=translate_mso, args=(values, copy.deepcopy(watch))) for values in utilities.list_split(paths, processes)]
+    pool = [multiprocessing.Process(target=translate_mso, args=(safe, values, copy.deepcopy(watch))) for values in utilities.list_split(paths, processes)]
     for process in pool: process.start()
     for process in pool: process.join()

@@ -39,12 +39,14 @@ def move_ppt(path_source: str, path_destination: str) -> None:
     app.Quit()
 
 
-def move(directory_src: pathlib.Path, directory_dst: pathlib.Path, watch: utilities.Watch) -> None:
+def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, watch: utilities.Watch) -> None:
 
     suffix_to_function_suffix = {".xlsx": (move_xls, ".xlsx"), ".xls": (move_xls, ".xlsx"), ".docx": (move_doc, ".docx"), ".doc": (move_doc, ".docx"), ".pptx": (move_ppt, ".pptx"), ".ppt": (move_ppt, ".pptx")}
 
-    path_idx = pathlib.Path([path.name for path in directory_src.glob("*") if path.suffix == ".xlsx" and path.stat().st_file_attributes != 34][0])
-    paths = dict()
+    path_idx = [pathlib.Path(*path.parts[1:]) for path in directory_src.glob("*") if path.suffix == ".xlsx" and path.stat().st_file_attributes != 34][0]
+
+    paths_dir = {pathlib.Path(*path.parts[1:]): [] for path in directory_src.rglob("*") if path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and path.stat().st_file_attributes != 34}
+    paths_idx = {}
 
     workbook = openpyxl.load_workbook(str(directory_src / path_idx))
     for sheetname, (rows, cols) in utilities.worksheets_dimensions(str(directory_src / path_idx)).items():
@@ -54,10 +56,12 @@ def move(directory_src: pathlib.Path, directory_dst: pathlib.Path, watch: utilit
                 if cell.hyperlink is not None:
                     path = pathlib.Path(urllib.parse.unquote(cell.hyperlink.target))
                     if path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and ".." not in path.parts:
-                        if path not in paths:
-                            paths[path] = [cell]
+                        if path not in paths_idx:
+                            paths_idx[path] = [cell]
                         else:
-                            paths[path].append(cell)
+                            paths_idx[path].append(cell)
+
+    paths = paths_idx if not full else paths_dir | paths_idx
 
     watch.index_ending = len(paths)
     for index, (path, cells) in enumerate(paths.items(), start=1):
