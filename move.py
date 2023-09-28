@@ -3,40 +3,28 @@ import copy
 import pathlib
 import openpyxl
 import urllib.parse
-import win32com.client
 import pebble.concurrent
 
+import windows
 import utilities
 
 
 @pebble.concurrent.process(timeout=300)
 def move_xls(path_source: str, path_destination: str) -> None:
-    app = win32com.client.gencache.EnsureDispatch("Excel.Application")
-    app.DisplayAlerts = False
-    file = app.Workbooks.Open(path_source)
-    file.SaveAs(path_destination, 51)
-    file.Close()
-    app.Quit()
+    with windows.open_xls(path_source) as file:
+        file.SaveAs(path_destination, FileFormat=51)
 
 
 @pebble.concurrent.process(timeout=300)
 def move_doc(path_source: str, path_destination: str) -> None:
-    app = win32com.client.gencache.EnsureDispatch("Word.Application")
-    app.DisplayAlerts = False
-    file = app.Documents.Open(path_source)
-    file.SaveAs(path_destination, 16)
-    file.Close()
-    app.Quit()
+    with windows.open_doc(path_source) as file:
+        file.SaveAs(path_destination, FileFormat=16)
 
 
 @pebble.concurrent.process(timeout=300)
 def move_ppt(path_source: str, path_destination: str) -> None:
-    app = win32com.client.gencache.EnsureDispatch("Powerpoint.Application")
-    app.DisplayAlerts = False
-    file = app.Presentations.Open(path_source, WithWindow=False)
-    file.SaveAs(path_destination, 24)
-    file.Close()
-    app.Quit()
+    with windows.open_ppt(path_source) as file:
+        file.SaveAs(path_destination, FileFormat=24)
 
 
 def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, watch: utilities.Watch) -> None:
