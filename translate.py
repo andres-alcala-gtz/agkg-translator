@@ -1,5 +1,4 @@
 import re
-import time
 import copy
 import docx
 import pptx
@@ -36,9 +35,7 @@ def translate_xls(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> Non
                 if type(translation) == str:
                     container.value = translation
             except Exception as exception:
-                utilities.colorprint("y", path.name, f"{container.value} - {exception}", copy.deepcopy(watch))
-            else:
-                utilities.colorprint("w", path.name, f"{container.value}", copy.deepcopy(watch))
+                watch.print(f"{exception}")
 
     workbook = openpyxl.load_workbook(str(path))
     for sheetname, (rows, cols) in utilities.worksheets_dimensions(str(path)).items():
@@ -58,9 +55,7 @@ def translate_doc(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> Non
                 if type(translation) == str:
                     container.text = translation
             except Exception as exception:
-                utilities.colorprint("y", path.name, f"{container.text} - {exception}", copy.deepcopy(watch))
-            else:
-                utilities.colorprint("w", path.name, f"{container.text}", copy.deepcopy(watch))
+                watch.print(f"{exception}")
 
     document = docx.Document(str(path))
     paragraphs = document.paragraphs
@@ -95,9 +90,7 @@ def translate_ppt(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> Non
                 if type(translation) == str:
                     container.text = translation
             except Exception as exception:
-                utilities.colorprint("y", path.name, f"{container.text} - {exception}", copy.deepcopy(watch))
-            else:
-                utilities.colorprint("w", path.name, f"{container.text}", copy.deepcopy(watch))
+                watch.print(f"{exception}")
 
     presentation = pptx.Presentation(str(path))
     for slide in presentation.slides:
@@ -119,14 +112,13 @@ def translate_mso(safe: bool, paths: list[pathlib.Path], watch: utilities.Watch)
 
     suffix_to_function = {".xlsx": translate_xls, ".docx": translate_doc, ".pptx": translate_ppt}
 
-    watch.index_ending = len(paths)
+    watch.beginning(len(paths))
     for index, path in enumerate(paths, start=1):
-        watch.index_current = index
-        watch.time_current = time.perf_counter()
-        utilities.colorprint("c", path.name, "translating", copy.deepcopy(watch))
+        watch.current(index, path)
+        watch.print("translating")
         function = suffix_to_function[path.suffix]
         function(safe, path, copy.deepcopy(watch))
-        utilities.colorprint("g", path.name, "translated", copy.deepcopy(watch))
+        watch.print("translated")
 
 
 def translate(safe: bool, directory_dst: pathlib.Path, processes: int, watch: utilities.Watch) -> None:

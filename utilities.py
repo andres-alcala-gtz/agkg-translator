@@ -1,16 +1,29 @@
 import time
 import numpy
 import pandas
+import pathlib
 import datetime
-import dataclasses
 
 
-@dataclasses.dataclass
 class Watch:
-    index_current: int = 0
-    index_ending: int = 0
-    time_current: float = time.perf_counter()
-    time_beginning: float = time.perf_counter()
+
+    def __init__(self) -> None:
+        self.time_current = time.perf_counter()
+        self.time_beginning = time.perf_counter()
+        self.index_current = 0
+        self.index_ending = 0
+        self.path_current = pathlib.Path()
+
+    def current(self, index: int, path: pathlib.Path) -> None:
+        self.time_current = time.perf_counter()
+        self.index_current = index
+        self.path_current = path
+
+    def beginning(self, index: int) -> None:
+        self.index_ending = index
+
+    def print(self, message: str) -> None:
+        print(f"{datetime.datetime.now():%X} - [{self.index_current}/{self.index_ending}] - [{datetime.timedelta(seconds=int(time.perf_counter() - self.time_current))}/{datetime.timedelta(seconds=int(time.perf_counter() - self.time_beginning))}] -> {self.path_current.name} -> {message}")
 
 
 def list_split(values: list, sections: int) -> list[list]:
@@ -24,8 +37,3 @@ def worksheets_dimensions(path: str) -> dict[int | str, tuple[int, int]]:
         data = file.parse(sheet_name)
         info.update({sheet_name: data.shape})
     return info
-
-
-def colorprint(color: str, path: str, message: str, watch: Watch) -> None:
-    colors = {"r": "\x1b[31m", "g": "\x1b[32m", "y": "\x1b[33m", "b": "\x1b[34m", "m": "\x1b[35m", "c": "\x1b[36m", "w": "\x1b[37m", "n": "\x1b[39m"}
-    print(f"{colors.get('m')}{datetime.datetime.now():%X} - [{watch.index_current}/{watch.index_ending}] - [{datetime.timedelta(seconds=int(time.perf_counter() - watch.time_current))}/{datetime.timedelta(seconds=int(time.perf_counter() - watch.time_beginning))}] -> {colors.get('b')}{path} -> {colors.get(color)}{message}{colors.get('n')}")

@@ -1,5 +1,3 @@
-import time
-import copy
 import pathlib
 import openpyxl
 import urllib.parse
@@ -51,11 +49,10 @@ def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, w
 
     paths = paths_idx if not full else paths_dir | paths_idx
 
-    watch.index_ending = len(paths)
+    watch.beginning(len(paths))
     for index, (path, cells) in enumerate(paths.items(), start=1):
-        watch.index_current = index
-        watch.time_current = time.perf_counter()
-        utilities.colorprint("c", path.name, "moving", copy.deepcopy(watch))
+        watch.current(index, path)
+        watch.print("moving")
         try:
             function, suffix = suffix_to_function_suffix[path.suffix]
             path_old = path
@@ -66,9 +63,9 @@ def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, w
             function(str(path_src.resolve()), str(path_dst.resolve())).result()
         except Exception as exception:
             for cell in cells: cell.hyperlink.target = str(path_old)
-            utilities.colorprint("r", path.name, exception, copy.deepcopy(watch))
+            watch.print(f"{exception}")
         else:
             for cell in cells: cell.hyperlink.target = str(path_new)
-            utilities.colorprint("g", path.name, "moved", copy.deepcopy(watch))
+            watch.print("moved")
 
     workbook.save(str(directory_dst / path_idx))
