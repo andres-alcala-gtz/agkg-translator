@@ -29,9 +29,9 @@ def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, w
 
     suffix_to_function_suffix = {".xlsx": (move_xls, ".xlsx"), ".xls": (move_xls, ".xlsx"), ".docx": (move_doc, ".docx"), ".doc": (move_doc, ".docx"), ".pptx": (move_ppt, ".pptx"), ".ppt": (move_ppt, ".pptx")}
 
-    path_idx = [pathlib.Path(*path.parts[1:]) for path in directory_src.glob("*") if path.suffix == ".xlsx" and path.stat().st_file_attributes != 34][0]
+    path_idx = [pathlib.Path(*path.parts[1:]) for path in directory_src.glob("*") if path.suffix == ".xlsx" and not path.name.startswith(".")][0]
 
-    paths_dir = {pathlib.Path(*path.parts[1:]): [] for path in directory_src.rglob("*") if path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and path.stat().st_file_attributes != 34}
+    paths_dir = {pathlib.Path(*path.parts[1:]): [] for path in directory_src.rglob("*") if path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and not path.name.startswith(".")}
     paths_idx = {}
 
     workbook = openpyxl.load_workbook(str(directory_src / path_idx))
@@ -41,7 +41,7 @@ def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, w
                 cell = workbook[sheetname].cell(row, col)
                 if cell.hyperlink is not None:
                     path = pathlib.Path(urllib.parse.unquote(cell.hyperlink.target))
-                    if path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and ".." not in path.parts:
+                    if pathlib.Path(directory_src / path).exists() and path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and not path.name.startswith(".") and ".." not in path.parts:
                         if path not in paths_idx:
                             paths_idx[path] = [cell]
                         else:

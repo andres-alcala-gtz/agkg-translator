@@ -123,7 +123,7 @@ def translate_mso(safe: bool, paths: list[pathlib.Path], watch: utilities.Watch)
 
 def translate(safe: bool, directory_dst: pathlib.Path, processes: int, watch: utilities.Watch) -> None:
 
-    paths = [path for path in directory_dst.rglob("*") if path.suffix in (".xlsx", ".docx", ".pptx") and path.stat().st_file_attributes != 34]
+    paths = [path for path in directory_dst.rglob("*") if path.suffix in (".xlsx", ".docx", ".pptx")]
 
     pool = [multiprocessing.Process(target=translate_mso, args=(safe, values, copy.deepcopy(watch))) for values in utilities.list_split(paths, processes)]
     for process in pool: process.start()
