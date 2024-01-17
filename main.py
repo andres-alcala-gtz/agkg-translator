@@ -27,3 +27,5 @@ if __name__ == "__main__":
     move.move(full, directory_src, directory_dst, copy.deepcopy(watch))
     translate.translate(safe, directory_dst, processes, copy.deepcopy(watch))
     translate.translate(safe, directory_dst, 1, copy.deepcopy(watch))
+
+    print()

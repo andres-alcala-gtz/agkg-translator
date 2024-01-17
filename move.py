@@ -1,3 +1,5 @@
+import docx
+import pptx
 import pathlib
 import openpyxl
 import urllib.parse
@@ -11,18 +13,21 @@ import utilities
 def move_xls(path_source: str, path_destination: str) -> None:
     with windows.open_xls(path_source) as file:
         file.SaveAs(path_destination, FileFormat=51)
+    openpyxl.load_workbook(path_destination)
 
 
 @pebble.concurrent.process(timeout=300)
 def move_doc(path_source: str, path_destination: str) -> None:
     with windows.open_doc(path_source) as file:
         file.SaveAs(path_destination, FileFormat=16)
+    docx.Document(path_destination)
 
 
 @pebble.concurrent.process(timeout=300)
 def move_ppt(path_source: str, path_destination: str) -> None:
     with windows.open_ppt(path_source) as file:
         file.SaveAs(path_destination, FileFormat=24)
+    pptx.Presentation(path_destination)
 
 
 def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, watch: utilities.Watch) -> None:
@@ -62,6 +67,7 @@ def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, w
             path_dst.parent.mkdir(parents=True, exist_ok=True)
             function(str(path_src.resolve()), str(path_dst.resolve())).result()
         except Exception as exception:
+            path_dst.unlink(missing_ok=True)
             for cell in cells: cell.hyperlink.target = str(path_old)
             watch.print(f"{exception}")
         else:
