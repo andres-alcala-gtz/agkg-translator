@@ -45,12 +45,23 @@ def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, w
             for col in range(1, cols + 1):
                 cell = workbook[sheetname].cell(row, col)
                 if cell.hyperlink is not None:
-                    path = pathlib.Path(urllib.parse.unquote(cell.hyperlink.target))
-                    if pathlib.Path(directory_src / path).exists() and path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and not path.name.startswith(".") and ".." not in path.parts:
-                        if path not in paths_idx:
-                            paths_idx[path] = [cell]
-                        else:
-                            paths_idx[path].append(cell)
+                    hyperlink_old = pathlib.Path(urllib.parse.unquote(cell.hyperlink.target))
+                    hyperlink_src = directory_src / hyperlink_old
+                    if hyperlink_src.exists() and ".." not in hyperlink_src.parts:
+                        if hyperlink_src.is_file():
+                            hyperlink = hyperlink_src
+                            path = pathlib.Path(*hyperlink.parts[1:])
+                            if path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and not path.name.startswith("."):
+                                if path not in paths_idx:
+                                    paths_idx[path] = [cell]
+                                else:
+                                    paths_idx[path].append(cell)
+                        if hyperlink_src.is_dir():
+                            for hyperlink in hyperlink_src.glob("*"):
+                                path = pathlib.Path(*hyperlink.parts[1:])
+                                if path.suffix in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt") and not path.name.startswith("."):
+                                    if path not in paths_idx:
+                                        paths_idx[path] = []
 
     paths = paths_idx if not full else paths_dir | paths_idx
 
