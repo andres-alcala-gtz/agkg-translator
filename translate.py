@@ -112,8 +112,8 @@ def translate_mso(safe: bool, paths: list[pathlib.Path], watch: utilities.Watch)
 
     suffix_to_function = {".xlsx": translate_xls, ".docx": translate_doc, ".pptx": translate_ppt}
 
-    watch.beginning(len(paths))
-    for index, path in enumerate(paths, start=1):
+    while paths:
+        index, path = paths.pop(0)
         watch.current(index, path)
         watch.print("translating")
         function = suffix_to_function[path.suffix]
@@ -123,8 +123,13 @@ def translate_mso(safe: bool, paths: list[pathlib.Path], watch: utilities.Watch)
 
 def translate(safe: bool, directory_dst: pathlib.Path, processes: int, watch: utilities.Watch) -> None:
 
-    paths = [path for path in directory_dst.rglob("*") if path.suffix in (".xlsx", ".docx", ".pptx")]
+    with multiprocessing.Manager() as manager:
 
-    pool = [multiprocessing.Process(target=translate_mso, args=(safe, values, copy.deepcopy(watch))) for values in utilities.list_split(paths, processes)]
-    for process in pool: process.start()
-    for process in pool: process.join()
+        paths_raw = [path for path in directory_dst.rglob("*") if path.suffix in (".xlsx", ".docx", ".pptx")]
+
+        paths = manager.list(enumerate(paths_raw, start=1))
+        watch.beginning(len(paths_raw))
+
+        pool = [multiprocessing.Process(target=translate_mso, args=(safe, paths, copy.deepcopy(watch))) for _ in range(processes)]
+        for process in pool: process.start()
+        for process in pool: process.join()

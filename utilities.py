@@ -1,5 +1,4 @@
 import time
-import numpy
 import pandas
 import pathlib
 import datetime
@@ -24,10 +23,6 @@ class Watch:
 
     def print(self, message: str) -> None:
         print(f"{datetime.datetime.now():%X} - [{self.index_current}/{self.index_ending}] - [{datetime.timedelta(seconds=int(time.perf_counter() - self.time_current))}/{datetime.timedelta(seconds=int(time.perf_counter() - self.time_beginning))}] -> {self.path_current.name} -> {message}")
-
-
-def list_split(values: list, sections: int) -> list[list]:
-    return [list(array) for array in numpy.array_split(values, sections)]
 
 
 def worksheets_dimensions(path: str) -> dict[int | str, tuple[int, int]]:
