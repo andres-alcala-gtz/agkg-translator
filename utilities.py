@@ -22,13 +22,10 @@ class Watch:
         self.index_ending = index
 
     def print(self, message: str) -> None:
-        print(f"{datetime.datetime.now():%X} - [{self.index_current}/{self.index_ending}] - [{datetime.timedelta(seconds=int(time.perf_counter() - self.time_current))}/{datetime.timedelta(seconds=int(time.perf_counter() - self.time_beginning))}] -> {self.path_current.name} -> {message}")
+        print(f"{datetime.datetime.now():%X} | {datetime.timedelta(seconds=int(time.perf_counter() - self.time_current))}/{datetime.timedelta(seconds=int(time.perf_counter() - self.time_beginning))} | {self.index_current}/{self.index_ending} | {self.path_current.name} | {message}")
 
 
 def worksheets_dimensions(path: str) -> dict[int | str, tuple[int, int]]:
     file = pandas.ExcelFile(path)
-    info = dict()
-    for sheet_name in file.sheet_names:
-        data = file.parse(sheet_name)
-        info.update({sheet_name: data.shape})
+    info = {sheet_name: file.parse(sheet_name).shape for sheet_name in file.sheet_names}
     return info

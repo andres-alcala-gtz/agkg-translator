@@ -29,11 +29,10 @@ def translate_str(safe: bool, text: str) -> str:
 def translate_xls(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> None:
 
     def _translate(container) -> None:
-        if type(container.value) == str and re.search("[\u4E00-\u9FFF]", container.value) and container.data_type != "f":
+        if isinstance(container.value, str) and re.search("[\u4E00-\u9FFF]", container.value) and container.data_type != "f":
             try:
                 translation = translate_str(safe, container.value)
-                if type(translation) == str:
-                    container.value = translation
+                if isinstance(translation, str): container.value = translation
             except Exception as exception:
                 watch.print(f"{exception}")
 
@@ -49,11 +48,10 @@ def translate_xls(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> Non
 def translate_doc(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> None:
 
     def _translate(container) -> None:
-        if type(container.text) == str and re.search("[\u4E00-\u9FFF]", container.text):
+        if isinstance(container.text, str) and re.search("[\u4E00-\u9FFF]", container.text):
             try:
                 translation = translate_str(safe, container.text)
-                if type(translation) == str:
-                    container.text = translation
+                if isinstance(translation, str): container.text = translation
             except Exception as exception:
                 watch.print(f"{exception}")
 
@@ -84,11 +82,10 @@ def translate_doc(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> Non
 def translate_ppt(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> None:
 
     def _translate(container) -> None:
-        if type(container.text) == str and re.search("[\u4E00-\u9FFF]", container.text):
+        if isinstance(container.text, str) and re.search("[\u4E00-\u9FFF]", container.text):
             try:
                 translation = translate_str(safe, container.text)
-                if type(translation) == str:
-                    container.text = translation
+                if isinstance(translation, str): container.text = translation
             except Exception as exception:
                 watch.print(f"{exception}")
 
@@ -108,7 +105,7 @@ def translate_ppt(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> Non
     presentation.save(str(path))
 
 
-def translate_mso(safe: bool, paths: list[pathlib.Path], watch: utilities.Watch) -> None:
+def translate_mso(safe: bool, paths: list[tuple[int, pathlib.Path]], watch: utilities.Watch) -> None:
 
     suffix_to_function = {".xlsx": translate_xls, ".docx": translate_doc, ".pptx": translate_ppt}
 
