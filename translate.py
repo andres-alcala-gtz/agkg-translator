@@ -123,6 +123,7 @@ def translate(safe: bool, directory_dst: pathlib.Path, processes: int, watch: ut
     with multiprocessing.Manager() as manager:
 
         paths_raw = [path for path in directory_dst.rglob("*") if path.suffix in (".xlsx", ".docx", ".pptx")]
+        paths_raw.sort(key=lambda path: path.stat().st_size, reverse=True)
 
         paths = manager.list(enumerate(paths_raw, start=1))
         watch.beginning(len(paths_raw))
