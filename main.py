@@ -5,7 +5,6 @@ import pathlib
 import move
 import translate
 
-import windows
 import utilities
 
 
@@ -23,7 +22,6 @@ if __name__ == "__main__":
 
     watch = utilities.Watch()
 
-    windows.clear_temp()
     move.move(full, directory_src, directory_dst, copy.deepcopy(watch))
     translate.translate(safe, directory_dst, processes, copy.deepcopy(watch))
     translate.translate(safe, directory_dst, 1, copy.deepcopy(watch))

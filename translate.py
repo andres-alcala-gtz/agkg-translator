@@ -5,25 +5,28 @@ import pptx
 import pathlib
 import openpyxl
 import functools
+import subprocess
 import multiprocessing
-import deep_translator
-import pebble.concurrent
+import argostranslate.package
 
 import utilities
 
 
-def translate_str_vul(text: str) -> str:
-    return deep_translator.GoogleTranslator(source="auto", target="en").translate(text)
+LANGUAGE_SRC = "zh"
+LANGUAGE_DST = "en"
 
 
-@pebble.concurrent.process(timeout=30)
-def translate_str_sec(text: str) -> str:
-    return deep_translator.GoogleTranslator(source="auto", target="en").translate(text)
+def install_translator() -> None:
+    argostranslate.package.update_package_index()
+    available_packages = argostranslate.package.get_available_packages()
+    package_to_install = next(filter(lambda package: package.from_code == LANGUAGE_SRC and package.to_code == LANGUAGE_DST, available_packages))
+    argostranslate.package.install_from_path(package_to_install.download())
 
 
 @functools.cache
 def translate_str(safe: bool, text: str) -> str:
-    return translate_str_vul(text) if not safe else translate_str_sec(text).result()
+    translation = subprocess.run(args=["argos-translate", "--from-lang", LANGUAGE_SRC, "--to-lang", LANGUAGE_DST, text], capture_output=True, text=True, check=True, timeout=30).stdout.strip()
+    return translation
 
 
 def translate_xls(safe: bool, path: pathlib.Path, watch: utilities.Watch) -> None:
@@ -119,6 +122,8 @@ def translate_mso(safe: bool, paths: list[tuple[int, pathlib.Path]], watch: util
 
 
 def translate(safe: bool, directory_dst: pathlib.Path, processes: int, watch: utilities.Watch) -> None:
+
+    install_translator()
 
     with multiprocessing.Manager() as manager:
 

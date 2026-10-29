@@ -2,32 +2,25 @@ import docx
 import pptx
 import pathlib
 import openpyxl
+import subprocess
 import urllib.parse
-import pebble.concurrent
 
-import windows
 import utilities
 
 
-@pebble.concurrent.process(timeout=300)
-def move_xls(path_source: str, path_destination: str) -> None:
-    with windows.open_xls(path_source) as file:
-        file.SaveAs(path_destination, FileFormat=51)
-    openpyxl.load_workbook(path_destination)
+def move_xls(path_src: pathlib.Path, path_dst: pathlib.Path) -> None:
+    subprocess.run(args=["libreoffice", "--headless", "--convert-to", "xlsx", "--outdir", str(path_dst.parent), str(path_src)], capture_output=True, text=True, check=True, timeout=120)
+    openpyxl.load_workbook(str(path_dst))
 
 
-@pebble.concurrent.process(timeout=300)
-def move_doc(path_source: str, path_destination: str) -> None:
-    with windows.open_doc(path_source) as file:
-        file.SaveAs(path_destination, FileFormat=16)
-    docx.Document(path_destination)
+def move_doc(path_src: pathlib.Path, path_dst: pathlib.Path) -> None:
+    subprocess.run(args=["libreoffice", "--headless", "--convert-to", "docx", "--outdir", str(path_dst.parent), str(path_src)], capture_output=True, text=True, check=True, timeout=120)
+    docx.Document(str(path_dst))
 
 
-@pebble.concurrent.process(timeout=300)
-def move_ppt(path_source: str, path_destination: str) -> None:
-    with windows.open_ppt(path_source) as file:
-        file.SaveAs(path_destination, FileFormat=24)
-    pptx.Presentation(path_destination)
+def move_ppt(path_src: pathlib.Path, path_dst: pathlib.Path) -> None:
+    subprocess.run(args=["libreoffice", "--headless", "--convert-to", "pptx", "--outdir", str(path_dst.parent), str(path_src)], capture_output=True, text=True, check=True, timeout=120)
+    pptx.Presentation(str(path_dst))
 
 
 def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, watch: utilities.Watch) -> None:
@@ -45,7 +38,7 @@ def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, w
             for col in range(1, cols + 1):
                 cell = workbook[sheetname].cell(row, col)
                 if cell.hyperlink is not None:
-                    hyperlink_old = pathlib.Path(urllib.parse.unquote(cell.hyperlink.target))
+                    hyperlink_old = pathlib.Path(pathlib.PureWindowsPath(urllib.parse.unquote(cell.hyperlink.target)))
                     hyperlink_src = directory_src / hyperlink_old
                     if hyperlink_src.exists() and ".." not in hyperlink_src.parts:
                         if hyperlink_src.is_file():
@@ -76,7 +69,7 @@ def move(full: bool, directory_src: pathlib.Path, directory_dst: pathlib.Path, w
             path_src = directory_src / path_old
             path_dst = directory_dst / path_new
             path_dst.parent.mkdir(parents=True, exist_ok=True)
-            function(str(path_src.resolve()), str(path_dst.resolve())).result()
+            function(path_src.resolve(), path_dst.resolve())
         except Exception as exception:
             path_dst.unlink(missing_ok=True)
             for cell in cells: cell.hyperlink.target = str(path_old)
